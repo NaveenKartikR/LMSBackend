@@ -14,25 +14,9 @@ mongoose.connect('mongodb://localhost:27017/LeaveManagementSystem')
 .then(() => console.log('Mongoose up'))
 
 const User = require('./models/users')
+const Leave = require('./models/leaves')
 
 app.use(bodyParser.json())
-
-app.post('/api/quote', async (req, res) => {
-    // console.log(req.session.user, req.body.value)
-    const user = User.findOne({email: req.session.user})
-    if(!user) {
-        res.json({
-            success: false,
-            message: 'Invalid user!'
-        })
-        return
-    }
-
-    await User.updateOne({email: req.session.user}, { $set: {quote: req.body.value }})
-    res.json({
-        success: true
-    })
-})
 
 app.post('/api/login', async (req, res) => {
     const {email, password} = req.body
@@ -62,7 +46,7 @@ app.get('/api/isloggedin', (req, res) => {
 })
 
 app.post('/api/register', async (req, res) => {
-    const {email, password} = req.body
+    const {rollno, name, email, password, mobile, course} = req.body
 
     const existingUser = await User.findOne({email})
     // console.log(existingUser, email, password)
@@ -76,8 +60,12 @@ app.post('/api/register', async (req, res) => {
     }
 
     const user = new User({
+        rollno,
+        name,
         email,
-        password
+        password,
+        mobile,
+        course
     })
 
     const result = await user.save()
@@ -85,6 +73,25 @@ app.post('/api/register', async (req, res) => {
     res.json({
         success: true,
         message: "Welcome!"
+    })
+    
+})
+
+app.post('/api/applyLeave', async (req, res) => {
+    const {email, date, reason} = req.body
+
+    const leave = new Leave({
+        email,
+        date,
+        reason,
+        false: Boolean
+    })
+
+    const result = await leave.save()
+    // console.log(result)
+    res.json({
+        success: true,
+        message: "Stored"
     })
     
 })
@@ -103,8 +110,20 @@ app.get('/api/data', async (req, res) => {
 
     res.json({
         status: true,
+        rollno: user.rollno,
+        name: user.name,
         email: req.session.user,
-        quote: user.quote
+        mobile: user.mobile,
+        course: user.course
+    })
+})
+
+app.get('/api/leaveData', async (req, res) => {
+    
+    const leave = await Leave.find({})
+
+    res.json({
+        leave
     })
 })
 

@@ -1,9 +1,12 @@
 const mongoose = require('mongoose')
 
 const UserSchema = new mongoose.Schema({
+    rollno: String,
+    name: String,
     email: String,
     password: String,
-    quote: {type: String, default: "You have no quote"}
+    mobile: String,
+    course: String
 })
 
 const User = mongoose.model('User', UserSchema)
