@@ -83,8 +83,7 @@ app.post('/api/applyLeave', async (req, res) => {
     const leave = new Leave({
         email,
         date,
-        reason,
-        false: Boolean
+        reason
     })
 
     const result = await leave.save()
@@ -94,6 +93,27 @@ app.post('/api/applyLeave', async (req, res) => {
         message: "Stored"
     })
     
+})
+
+app.post('/api/leaveValidate', async (req, res) => {
+    const {email, date, reason, status} = req.body
+    // console.log(email, password)
+    const resp = await Leave.findOne({email, date, reason})
+    // console.log(resp)
+    if (!resp) {
+        // console.log("Incorrect details")
+        res.json({
+            success: false
+        })
+    } else {
+        resp.approved = status
+        // console.log(resp)
+        
+        const result = await resp.save()
+        res.json({
+            success: true
+        })
+    }
 })
 
 app.get('/api/data', async (req, res) => {
@@ -120,7 +140,16 @@ app.get('/api/data', async (req, res) => {
 
 app.get('/api/leaveData', async (req, res) => {
     
-    const leave = await Leave.find({})
+    const leave = await Leave.find().sort({"approved": -1, "email": 1, "date": 1})
+
+    res.json({
+        leave
+    })
+})
+
+app.get('/api/yourLeaveData', async (req, res) => {
+    
+    const leave = await Leave.find({email: req.session.user}).sort({"approved": -1, "date": 1})
 
     res.json({
         leave
